@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "my-new-app",
-    "slug": "my-new-app",
-    "version": "1.0.0",
+    "name": "fancy jewellers",
+    "slug": "fancy-jewellers",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "mynewapp",
@@ -12,11 +12,12 @@
       "supportsTablet": true
     },
     "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      },
-      "edgeToEdgeEnabled": true
+      "minSdkVersion": 24,
+      "targetSdkVersion": 35,
+    "useNextNotificationsApi": true,
+    "permissions": ["NOTIFICATIONS"],
+      "package": "com.fancyjewellers.fancyjewellers",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "bundler": "metro",
@@ -25,6 +26,18 @@
     },
     "plugins": [
       "expo-router",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "kotlinVersion": "2.0.21",
+            "javaVersion": "17",
+            "compileSdkVersion": 35,
+            "targetSdkVersion": 35,
+            "minSdkVersion": 24
+          }
+        }
+      ],
       [
         "expo-splash-screen",
         {
@@ -37,6 +50,11 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "95347669-53d7-45ef-a586-463cbbbba107"
+      }
     }
   }
 }
