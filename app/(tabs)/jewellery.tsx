@@ -4,15 +4,16 @@ import { Picker } from '@react-native-picker/picker';
 import { router } from 'expo-router';
 import React, { useContext, useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
-  Dimensions,
-  FlatList,
-  Image,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Dimensions,
+    FlatList,
+    Image,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
+import Colors from '../../constants/Colors';
 import { GoldPriceContext } from './_layout';
 
 const { width } = Dimensions.get('window');
@@ -37,7 +38,7 @@ const Jewellery = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [quality, setQuality] = useState<number | string>('');
-  const [qualities, setQualities] = useState<Array<{ label: string; value: number }>>([]);
+  const [qualities, setQualities] = useState<{ label: string; value: number }[]>([]);
   const [qualitiesLoading, setQualitiesLoading] = useState<boolean>(false);
   const [qualitiesError, setQualitiesError] = useState<string | null>(null);
   
@@ -75,7 +76,7 @@ const Jewellery = () => {
         if (!response.ok) {
           throw new Error(`Failed to load qualities: ${response.status}`);
         }
-        const apiData: Array<{ _id: string; quality: string; price: number }> = await response.json();
+        const apiData: { _id: string; quality: string; price: number }[] = await response.json();
         const mapped = apiData.map(item => ({
           label: (item.quality || '').toUpperCase(),
           value: item.price ?? 0,
@@ -247,13 +248,14 @@ const Jewellery = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: Colors.background,
     paddingTop: 16,
   },
   headerTitle: {
     fontSize: 30,
     fontWeight: '800',
     marginHorizontal: 16,
-    
+    color: Colors.textPrimary,
   },
   categoryList: {
     marginBottom: 4,
@@ -262,19 +264,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   categoryButton: {
-    paddingHorizontal: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
     marginRight: 8,
     borderRadius: 20,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.fontColorsLight,
   },
   selectedCategory: {
-    
+    backgroundColor: Colors.accent,
+    borderColor: Colors.fontColors,
   },
   categoryText: {
     fontSize: 14,
-    
+    color: Colors.textSecondary,
     fontWeight: '500',
   },
   selectedCategoryText: {
+    color: Colors.textPrimary,
     fontWeight: '600',
   },
   filterContainer: {
@@ -283,9 +291,12 @@ const styles = StyleSheet.create({
   },
   pickerContainer: {
     borderRadius: 10,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.fontColorsLight,
   },
   picker: {
-    
+    color: Colors.textPrimary,
   },
   productGrid: {
     padding: 16,
@@ -295,9 +306,16 @@ const styles = StyleSheet.create({
   },
   productCard: {
     width: COLUMN_WIDTH,
-    
+    backgroundColor: Colors.surface,
     borderRadius: 12,
     marginBottom: 12,
+    shadowColor: Colors.background,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: Colors.fontColorsLight,
   },
   imageContainer: {
     position: 'relative',
@@ -318,10 +336,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
+    backgroundColor: Colors.backgroundMedium,
   },
   qualityText: {
     fontSize: 12,
     fontWeight: '700',
+    color: Colors.textPrimary,
   },
   productInfo: {
     padding: 12,
@@ -329,7 +349,7 @@ const styles = StyleSheet.create({
   productTitle: {
     fontSize: 14,
     fontWeight: '600',
-   
+    color: Colors.textPrimary,
     marginBottom: 8,
     lineHeight: 20,
   },
@@ -345,28 +365,31 @@ const styles = StyleSheet.create({
   priceText: {
     fontSize: 16,
     fontWeight: '700',
-    
+    color: Colors.fontColors,
   },
   discountedPriceText: {
     fontSize: 16,
     fontWeight: '700',
+    color: Colors.fontColors,
   },
   originalPriceText: {
     fontSize: 12,
-    
+    color: Colors.textSecondary,
     textDecorationLine: 'line-through',
   },
   discountBadge: {
     fontSize: 10,
-    
+    color: Colors.textPrimary,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 8,
     marginTop: 4,
+    backgroundColor: Colors.backgroundLight,
   },
   weightText: {
     fontSize: 12,
-    marginLeft:-12,
+    color: Colors.textSecondary,
+    marginLeft: -12,
   },
   loader: {
     flex: 1,
@@ -379,7 +402,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyStateText: {
-    
+    color: Colors.textPrimary,
     fontSize: 18,
   },
 });

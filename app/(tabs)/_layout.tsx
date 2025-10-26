@@ -9,12 +9,10 @@ import React, {
   useEffect,
   useState,
 } from 'react';
-import { AppState, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { AppState, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { IconSymbol } from '@/components/ui/IconSymbol';
 import Colors from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 
@@ -168,176 +166,294 @@ const GoldPriceProvider: React.FC<{ children: React.ReactNode }> = ({ children }
   );
 };
 
-function DrawerLayout() {
-  const colorScheme = useColorScheme();
-
-  return (
-    <Tabs
-      screenOptions={{
-        headerShown: true,
-        headerStyle: {
-          backgroundColor: "#7C0000",
-        },
-        headerTintColor: "#fff",
-        tabBarStyle: {
-          backgroundColor: '#fff',
-        },
-        tabBarActiveTintColor: "#7C0000",
-        headerTitle: () => (
-          
-          <View style={styles.logo}>
-            <Image
-              style={styles.logoimage}
-              source={{
-                uri: "https://res.cloudinary.com/dzpsk7xch/image/upload/v1755331867/icon_2_rrrdio.png",
-              }}
-            />
-            <Text
-              style={{
-                fontSize: 32,
-                fontWeight: "bold",
-                textAlign: "center",
-                marginVertical: 10,
-                color: "#E7B858",
-              }}
-            >
-              Fancy Jewellers
-            </Text>
-          </View>
-        ),
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          tabBarLabel: 'Home',
-          title: 'Home',
-          tabBarIcon: ({ color, size }) => (
-            <IconSymbol size={size} name="house.fill" color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="calculator"
-        options={{
-          tabBarLabel: 'Calculator',
-          title: 'Calculator',
-          tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons name="calculator" size={24} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="coin"
-        options={{
-          tabBarLabel: 'Coins',
-          title: 'Gold Coins',
-          tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons name="gold" size={24} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          tabBarLabel: 'Profile',
-          title: 'Your Profile',
-          tabBarIcon: ({ color, size }) => (
-            <IconSymbol size={size} name="person.fill" color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="contact"
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="bankDetails"
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="jewellery"
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="about"
-        options={{
-          href: null,
-        }}
-      />
-    </Tabs>
-  );
-}
-
 export default function RootLayout() {
   return (
     <GoldPriceProvider>
-      <TabLayout />
+      <MainLayout />
     </GoldPriceProvider>
   );
 }
 
-function TabLayout() {
+function MainLayout() {
+  const [drawerVisible, setDrawerVisible] = useState(false);
+
+  const toggleDrawer = () => {
+    setDrawerVisible(!drawerVisible);
+  };
+
+  const navigateTo = (path: string) => {
+    setDrawerVisible(false);
+    router.push(path as any);
+  };
+
+  const drawerItems = [
+    { icon: 'home', label: 'Home', route: '/', color: '#FFD700' },
+    { icon: 'chart-line', label: 'Live Gold Rate', route: '/', color: '#FFD700' },
+    { icon: 'calculator', label: 'Gold Calculator', route: '/calculator', color: '#4CAF50' },
+    { icon: 'gold', label: 'Gold Coins', route: '/coin', color: '#FFA500' },
+    { icon: 'necklace', label: 'Jewellery Collection', route: '/jewellery', color: '#E91E63' },
+    { icon: 'account', label: 'My Profile', route: '/profile', color: '#2196F3' },
+    { icon: 'bank', label: 'Bank Details', route: '/bankDetails', color: '#00BCD4' },
+    { icon: 'information', label: 'About Us', route: '/about', color: '#9C27B0' },
+    { icon: 'phone', label: 'Contact Us', route: '/contact', color: '#FF5722' },
+  ];
+
   return (
-    <SafeAreaView style={styles.container} edges={['right', 'left']}>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <View style={{ flex: 1 }}>
+        <Tabs
+          screenOptions={{
+            headerShown: true,
+            headerStyle: {
+              backgroundColor: Colors.background,
+            },
+            headerTintColor: Colors.fontColors,
+            tabBarStyle: {
+              display: 'none', // Hide default tab bar
+            },
+            tabBarActiveTintColor: Colors.accent,
+            headerLeft: () => (
+              <TouchableOpacity 
+                onPress={toggleDrawer} 
+                style={styles.menuButton}
+                activeOpacity={0.7}
+              >
+                <MaterialCommunityIcons name="menu" size={28} color={Colors.fontColors} />
+              </TouchableOpacity>
+            ),
+            headerTitle: () => (
+              <View style={styles.logo}>
+                <Image
+                  style={styles.logoimage}
+                  source={{
+                    uri: "https://res.cloudinary.com/dzpsk7xch/image/upload/v1755331867/icon_2_rrrdio.png",
+                  }}
+                />
+                <Text style={styles.logoText}>
+                  Fancy Jewellers
+                </Text>
+              </View>
+            ),
+            headerRight: () => (
+              <TouchableOpacity 
+                onPress={() => router.push('/profile')} 
+                style={styles.profileButton}
+                activeOpacity={0.7}
+              >
+                <MaterialCommunityIcons name="account-circle" size={28} color={Colors.fontColors} />
+              </TouchableOpacity>
+            ),
+          }}>
+          <Tabs.Screen
+            name="index"
+            options={{
+              tabBarLabel: 'Home',
+              title: 'Home',
+            }}
+          />
+          <Tabs.Screen
+            name="calculator"
+            options={{
+              tabBarLabel: 'Calculator',
+              title: 'Gold Calculator',
+            }}
+          />
+          <Tabs.Screen
+            name="coin"
+            options={{
+              tabBarLabel: 'Coins',
+              title: 'Gold Coins',
+            }}
+          />
+          <Tabs.Screen
+            name="profile"
+            options={{
+              tabBarLabel: 'Profile',
+              title: 'Your Profile',
+            }}
+          />
+          <Tabs.Screen
+            name="contact"
+            options={{
+              href: null,
+            }}
+          />
+          <Tabs.Screen
+            name="bankDetails"
+            options={{
+              href: null,
+            }}
+          />
+          <Tabs.Screen
+            name="jewellery"
+            options={{
+              href: null,
+            }}
+          />
+          <Tabs.Screen
+            name="about"
+            options={{
+              href: null,
+            }}
+          />
+        </Tabs>
 
-      <View style={styles.mainContent}>
-        <DrawerLayout />
-      </View>
-      <SafeAreaView edges={['bottom']} style={styles.bottomNavContainer}>
-        <View style={styles.bottomNav}>
+        {/* Custom Footer Navigation - Positioned at bottom */}
+        <View style={styles.bottomNavContainer}>
+          <View style={styles.bottomNav}>
+            {/* Live Rate */}
+            <TouchableOpacity
+              style={styles.tabButton}
+              activeOpacity={0.7}
+              onPress={() => router.push('/')}
+            >
+              <View style={styles.footerItem}>
+                <MaterialCommunityIcons 
+                  name="chart-line" 
+                  size={24} 
+                  color={Colors.fontColors} 
+                />
+                <Text style={styles.footerText}>Live Rate</Text>
+              </View>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.tabButton}
-            activeOpacity={0.7}
-            onPress={() => router.push('/')}
-          >
-            <View style={styles.footerItem}>
-              <MaterialCommunityIcons name="chart-line" size={24} color="#E7B858" />
-              <Text style={styles.footerText}>Live Rate</Text>
-            </View>
-          </TouchableOpacity>
+            {/* Calculator */}
+            <TouchableOpacity
+              style={styles.tabButton}
+              activeOpacity={0.7}
+              onPress={() => router.push('/calculator')}
+            >
+              <View style={styles.footerItem}>
+                <MaterialCommunityIcons 
+                  name="calculator-variant" 
+                  size={24} 
+                  color={Colors.fontColors} 
+                />
+                <Text style={styles.footerText}>Calculator</Text>
+              </View>
+            </TouchableOpacity>
 
+            {/* Jewellery - Center/Featured */}
+            <TouchableOpacity
+              style={[styles.tabButton, styles.featuredButton]}
+              activeOpacity={0.7}
+              onPress={() => router.push('/jewellery')}
+            >
+              <View style={styles.footerItem}>
+                <MaterialCommunityIcons 
+                  name="diamond-stone" 
+                  size={30} 
+                  color={Colors.fontColors} 
+                />
+                <Text style={[styles.footerText, styles.featuredText]}>Jewellery</Text>
+              </View>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.tabButton}
-            activeOpacity={0.7}
-            onPress={() => router.push('/calculator')}
-          >
-            <View style={styles.footerItem}>
-              <MaterialCommunityIcons name="calculator" size={24} color="#E7B858" />
-              <Text style={styles.footerText}>Calculator</Text>
-            </View>
-          </TouchableOpacity>
+            {/* Gold Coins */}
+            <TouchableOpacity
+              style={styles.tabButton}
+              activeOpacity={0.7}
+              onPress={() => router.push('/coin')}
+            >
+              <View style={styles.footerItem}>
+                <MaterialCommunityIcons 
+                  name="gold" 
+                  size={24} 
+                  color={Colors.fontColors} 
+                />
+                <Text style={styles.footerText}>Coins</Text>
+              </View>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.tabButton}
-            activeOpacity={0.7}
-            onPress={() => router.push('/jewellery')}
-          >
-            <View style={styles.footerItem}>
-              <MaterialCommunityIcons name="necklace" size={24} color="#E7B858" />
-              <Text style={styles.footerText}>Jewelleries</Text>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.tabButton}
-            activeOpacity={0.7}
-            onPress={() => router.push('/profile')}
-          >
-            <View style={styles.footerItem}>
-              <MaterialCommunityIcons name="account" size={24} color="#E7B858" />
-              <Text style={styles.footerText}>Profile</Text>
-            </View>
-          </TouchableOpacity>
+            {/* Profile */}
+            <TouchableOpacity
+              style={styles.tabButton}
+              activeOpacity={0.7}
+              onPress={() => router.push('/profile')}
+            >
+              <View style={styles.footerItem}>
+                <MaterialCommunityIcons 
+                  name="account-circle" 
+                  size={24} 
+                  color={Colors.fontColors} 
+                />
+                <Text style={styles.footerText}>Profile</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
         </View>
-      </SafeAreaView>
+      </View>
+
+      {/* Custom Drawer Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={drawerVisible}
+        onRequestClose={toggleDrawer}
+      >
+        <Pressable 
+          style={styles.drawerOverlay}
+          onPress={toggleDrawer}
+        >
+          <Pressable 
+            style={styles.drawerContainer}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <View style={styles.drawerBlur}>
+              {/* Drawer Header */}
+              <View style={styles.drawerHeader}>
+                <Image
+                  style={styles.drawerLogo}
+                  source={{
+                    uri: "https://res.cloudinary.com/dzpsk7xch/image/upload/v1755331867/icon_2_rrrdio.png",
+                  }}
+                />
+                <Text style={styles.drawerTitle}>Fancy Jewellers</Text>
+                <Text style={styles.drawerSubtitle}>Premium Gold & Jewellery</Text>
+                <TouchableOpacity 
+                  onPress={toggleDrawer} 
+                  style={styles.closeButton}
+                  activeOpacity={0.7}
+                >
+                  <MaterialCommunityIcons name="close" size={28} color={Colors.fontColors} />
+                </TouchableOpacity>
+              </View>
+
+              {/* Drawer Items */}
+              <ScrollView style={styles.drawerContent} showsVerticalScrollIndicator={false}>
+                {drawerItems.map((item, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={styles.drawerItem}
+                    onPress={() => navigateTo(item.route)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={[styles.drawerIconContainer, { backgroundColor: `${item.color}20` }]}>
+                      <MaterialCommunityIcons 
+                        name={item.icon as any} 
+                        size={24} 
+                        color={item.color} 
+                      />
+                    </View>
+                    <Text style={styles.drawerItemText}>{item.label}</Text>
+                    <MaterialCommunityIcons 
+                      name="chevron-right" 
+                      size={24} 
+                      color={Colors.textSecondary} 
+                    />
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+
+              {/* Drawer Footer */}
+              <View style={styles.drawerFooter}>
+                <Text style={styles.drawerFooterText}>Version 1.0.0</Text>
+                <Text style={styles.drawerFooterSubtext}>Made with ♥ for luxury</Text>
+              </View>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -345,6 +461,7 @@ function TabLayout() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: Colors.background,
   },
   logo: {
     flexDirection: 'row',
@@ -353,43 +470,189 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   logoimage: {
-    width: 45,
-    height: 45,
+    width: 35,
+    height: 35,
+    marginRight: 8,
   },
-  mainContent: {
-    flex: 1,
-    backgroundColor: 'black',
+  logoText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: Colors.fontColors,
+  },
+  menuButton: {
+    marginLeft: 15,
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: Colors.backgroundMedium,
+  },
+  profileButton: {
+    marginRight: 15,
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: Colors.backgroundMedium,
   },
   bottomNavContainer: {
     backgroundColor: Colors.background,
-    borderTopWidth: 1,
-    borderTopColor: '#ccc',
-    shadowColor: '#000',
+    borderTopWidth: 2,
+    borderTopColor: Colors.fontColors,
+    paddingBottom: Platform.OS === 'ios' ? 20 : 10,
+    shadowColor: Colors.fontColors,
     shadowOffset: {
       width: 0,
-      height: -2,
+      height: -4,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 8,
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    elevation: 15,
   },
   bottomNav: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    paddingVertical: 2,
+    paddingVertical: 10,
+    paddingHorizontal: 4,
     backgroundColor: Colors.background,
   },
   tabButton: {
-    padding: 3,
-    borderRadius: 8,
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 4,
+    borderRadius: 12,
+    marginHorizontal: 2,
+  },
+  featuredButton: {
+    backgroundColor: Colors.backgroundMedium,
+    transform: [{ scale: 1.15 }],
+    borderWidth: 2,
+    borderColor: Colors.fontColors,
+    borderRadius: 50,
+    paddingVertical: 12,
+    shadowColor: Colors.fontColors,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.6,
+    shadowRadius: 8,
+    elevation: 10,
   },
   footerItem: {
     alignItems: 'center',
+    justifyContent: 'center',
   },
   footerText: {
     color: Colors.fontColors,
+    fontSize: 10,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginTop: 4,
+  },
+  featuredText: {
+    fontSize: 11,
+    fontWeight: 'bold',
+  },
+  // Drawer Styles
+  drawerOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'flex-start',
+  },
+  drawerContainer: {
+    width: '85%',
+    maxWidth: 380,
+    height: '100%',
+    backgroundColor: Colors.surface,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 4,
+      height: 0,
+    },
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
+    elevation: 20,
+  },
+  drawerBlur: {
+    flex: 1,
+    backgroundColor: Colors.background,
+  },
+  drawerHeader: {
+    padding: 25,
+    paddingTop: 50,
+    backgroundColor: Colors.backgroundMedium,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.accent,
+    alignItems: 'center',
+  },
+  drawerLogo: {
+    width: 80,
+    height: 80,
+    marginBottom: 15,
+    borderRadius: 40,
+    borderWidth: 3,
+    borderColor: Colors.accent,
+  },
+  drawerTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: Colors.fontColors,
+    marginBottom: 5,
+  },
+  drawerSubtitle: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    fontStyle: 'italic',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 15,
+    right: 15,
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: Colors.backgroundDark,
+  },
+  drawerContent: {
+    flex: 1,
+    paddingVertical: 10,
+  },
+  drawerItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    marginHorizontal: 10,
+    marginVertical: 4,
+    borderRadius: 12,
+    backgroundColor: Colors.backgroundMedium,
+    borderLeftWidth: 4,
+    borderLeftColor: Colors.accent,
+  },
+  drawerIconContainer: {
+    width: 45,
+    height: 45,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 15,
+  },
+  drawerItemText: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.textPrimary,
+  },
+  drawerFooter: {
+    padding: 20,
+    borderTopWidth: 1,
+    borderTopColor: Colors.accent,
+    backgroundColor: Colors.backgroundMedium,
+    alignItems: 'center',
+  },
+  drawerFooterText: {
     fontSize: 12,
-    marginTop: 5,
+    color: Colors.textSecondary,
+    marginBottom: 4,
+  },
+  drawerFooterSubtext: {
+    fontSize: 11,
+    color: Colors.fontColors,
+    fontStyle: 'italic',
   },
 });

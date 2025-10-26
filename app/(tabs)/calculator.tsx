@@ -34,7 +34,7 @@ export default function Calculator() {
   const [calculatedmaking, setcalculatedMaking] = useState<number | null>(null);
   const [calculatedweight, setcalculatedWeigt] = useState<number | null>(null);
   const [gst, setGst] = useState<number | null>(null);
-  const [goldQualities, setGoldQualities] = useState<Array<{ karat: string; ratio: number; description: string }>>([]);
+  const [goldQualities, setGoldQualities] = useState<{ karat: string; ratio: number; description: string }[]>([]);
   const [qualitiesLoading, setQualitiesLoading] = useState<boolean>(false);
   const [qualitiesError, setQualitiesError] = useState<string | null>(null);
 
@@ -47,7 +47,7 @@ export default function Calculator() {
         if (!response.ok) {
           throw new Error(`Failed to load qualities: ${response.status}`);
         }
-        const apiData: Array<{ _id: string; quality: string; price: number }> = await response.json();
+        const apiData: { _id: string; quality: string; price: number }[] = await response.json();
         const mapped = apiData.map(item => ({
           karat: (item.quality || '').toUpperCase(),
           ratio: item.price ?? 0,

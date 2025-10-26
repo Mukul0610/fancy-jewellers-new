@@ -1,9 +1,10 @@
-import { useState } from 'react';
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { auth } from "@/utils/firebaseConfig";
 import { router } from 'expo-router';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from "@/utils/firebaseConfig";
-import { Mail, Lock } from 'lucide-react-native';
+import { Lock, Mail } from 'lucide-react-native';
+import { useState } from 'react';
+import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import Colors from '../../constants/Colors';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -28,7 +29,7 @@ export default function Login() {
         {error && <Text style={styles.error}>{error}</Text>}
 
         <View style={styles.inputContainer}>
-          <Mail size={20} color="#666" style={styles.icon} />
+          <Mail size={20} color={Colors.fontColors} style={styles.icon} />
           <TextInput
             style={styles.input}
             placeholder="Email"
@@ -36,17 +37,19 @@ export default function Login() {
             onChangeText={setEmail}
             autoCapitalize="none"
             keyboardType="email-address"
+            placeholderTextColor={Colors.fontColorsLight}
           />
         </View>
 
         <View style={styles.inputContainer}>
-          <Lock size={20} color="#666" style={styles.icon} />
+          <Lock size={20} color={Colors.fontColors} style={styles.icon} />
           <TextInput
             style={styles.input}
             placeholder="Password"
             value={password}
             onChangeText={setPassword}
             secureTextEntry
+            placeholderTextColor={Colors.fontColorsLight}
           />
         </View>
 
@@ -59,7 +62,7 @@ export default function Login() {
           onPress={() => router.push('/signup')}
         >
           <Text style={styles.linkText}>
-            Don't have an account? Sign up
+            Don&apos;t have an account? Sign up
           </Text>
         </TouchableOpacity>
       </View>
@@ -70,7 +73,7 @@ export default function Login() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background,
     justifyContent: 'center',
     padding: 20,
   },
@@ -78,25 +81,37 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 400,
     alignSelf: 'center',
+    backgroundColor: Colors.surface,
+    borderRadius: 20,
+    padding: 30,
+    shadowColor: Colors.background,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: 'bold',
     marginBottom: 8,
-    color: '#333',
+    color: Colors.textPrimary,
+    textAlign: 'center',
   },
   subtitle: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 24,
+    fontSize: 18,
+    color: Colors.textSecondary,
+    marginBottom: 30,
+    textAlign: 'center',
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
-    marginBottom: 16,
-    padding: 12,
+    backgroundColor: Colors.surfaceDark,
+    borderRadius: 12,
+    marginBottom: 20,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: Colors.fontColorsLight,
   },
   icon: {
     marginRight: 12,
@@ -104,31 +119,41 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 16,
-    color: '#333',
+    color: Colors.textPrimary,
   },
   button: {
-    backgroundColor: '#007AFF',
-    padding: 16,
-    borderRadius: 8,
+    backgroundColor: Colors.accent,
+    padding: 18,
+    borderRadius: 12,
     alignItems: 'center',
-    marginTop: 8,
+    marginTop: 10,
+    shadowColor: Colors.background,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
   },
   buttonText: {
-    color: '#fff',
-    fontSize: 16,
+    color: Colors.textPrimary,
+    fontSize: 18,
     fontWeight: '600',
   },
   linkButton: {
-    marginTop: 16,
+    marginTop: 20,
     alignItems: 'center',
   },
   linkText: {
-    color: '#007AFF',
+    color: Colors.textSecondary,
     fontSize: 16,
+    textDecorationLine: 'underline',
   },
   error: {
-    color: '#ff3b30',
-    marginBottom: 16,
+    color: Colors.fontColors,
+    marginBottom: 20,
     textAlign: 'center',
+    fontSize: 14,
+    backgroundColor: Colors.backgroundMedium,
+    padding: 10,
+    borderRadius: 8,
   },
 });

@@ -2,20 +2,20 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  Alert,
-  Animated,
-  Clipboard,
-  Easing,
-  Linking,
-  SafeAreaView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
+    Alert,
+    Animated,
+    Clipboard,
+    Easing,
+    Linking,
+    SafeAreaView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from 'react-native';
 
-const bankDetails = () => {
+const BankDetails = () => {
   //animating create logo 
   
   const translateX = useRef(new Animated.Value(400)).current; // Start off-screen (right)
@@ -74,7 +74,7 @@ const bankDetails = () => {
     details
   }: {
     title: string,
-    details: Array<{label: string, value: string}>
+    details: {label: string, value: string}[]
   }) => (
     <View  style={styles.bankDetailCard}>
       
@@ -217,4 +217,4 @@ const styles = StyleSheet.create({
 });
 
 
-export default bankDetails
+export default BankDetails

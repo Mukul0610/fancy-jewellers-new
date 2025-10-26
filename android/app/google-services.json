@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "769345226854",
+    "project_id": "fancy-jewellers",
+    "storage_bucket": "fancy-jewellers.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:769345226854:android:a34fa06d61979e039845a7",
+        "android_client_info": {
+          "package_name": "com.fancyjewellers.fancyjewellers"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB-drcKAH8VAHpmsdWLbnPIqp3SmtrBn60"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

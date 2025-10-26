@@ -1,22 +1,23 @@
 import { FontAwesome5, MaterialIcons } from '@expo/vector-icons';
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  Alert,
-  Animated,
-  Clipboard,
-  Easing,
-  Linking,
-  Platform,
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
+    Alert,
+    Animated,
+    Clipboard,
+    Easing,
+    Linking,
+    Platform,
+    SafeAreaView,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from 'react-native';
+import Colors from '../../constants/Colors';
 
-const contact = () => {
+const Contact = () => {
     const translateX = useRef(new Animated.Value(400)).current; // Start off-screen (right)
 
     useEffect(() => {
@@ -163,9 +164,9 @@ const contact = () => {
   const styles = StyleSheet.create({
     container: {
       flex: 1,
+      backgroundColor: Colors.background,
       paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
       justifyContent:"center",
-      // alignItems:"center",
     },
     header: {
       padding: 20,
@@ -181,12 +182,12 @@ const contact = () => {
     headerTitle: {
       fontSize: 28,
       fontWeight: '700',
-      
+      color: Colors.textPrimary,
       textAlign: 'center',
     },
     headerSubtitle: {
       fontSize: 16,
-     
+      color: Colors.textSecondary,
       textAlign: 'center',
       marginTop: 4,
       marginBottom:12
@@ -195,7 +196,7 @@ const contact = () => {
       padding: 20,
     },
       contactMethodsCard: {
-       backgroundColor:"#fff", 
+       backgroundColor: Colors.surface, 
       borderRadius: 20,
       padding: 20,
       marginBottom: 20,
@@ -204,20 +205,22 @@ const contact = () => {
     sectionTitle: {
       fontSize: 22,
     fontWeight: "700",
-    color: "#333",
+    color: Colors.textPrimary,
     marginBottom: 16,
   },
     
   contactMethodCard: {
-    backgroundColor: "#fff",
+    backgroundColor: Colors.surface,
     borderRadius: 16,
     padding: 14,
     marginBottom: 14,
-    shadowColor: "#000",
+    shadowColor: Colors.background,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.1,
     shadowRadius: 6,
     elevation: 4,
+    borderWidth: 1,
+    borderColor: Colors.fontColorsLight,
   },
   contactMethodContent: {
     flexDirection: "row",
@@ -227,7 +230,7 @@ const contact = () => {
     width: 44,
     height: 44,
     borderRadius: 12,
-    backgroundColor: "#F3F4F6",
+    backgroundColor: Colors.surfaceDark,
     justifyContent: "center",
     alignItems: "center",
     marginRight: 12,
@@ -238,11 +241,11 @@ const contact = () => {
     contactMethodTitle: {
       fontSize: 14,
       fontWeight: "600",
-      color: "#555",
+      color: Colors.textSecondary,
     },
     contactMethodValue: {
       fontSize: 13,
-      color: "#222",
+      color: Colors.textPrimary,
       marginTop: 2,
     },
     contactMethodActions: {
@@ -252,10 +255,10 @@ const contact = () => {
       marginLeft: 10,
       padding: 6,
       borderRadius: 20,
-      backgroundColor: "#FFF8E1",
+      backgroundColor: Colors.backgroundLight,
     },
     DetailCard: {
-      
+      backgroundColor: Colors.surface,
       borderRadius: 20,
       padding: 15,
       marginBottom: 20,
@@ -264,11 +267,11 @@ const contact = () => {
     
     created: {
       fontSize: 12,
-      color: "#555",
+      color: Colors.textSecondary,
       fontWeight: "500",
       marginBottom: 10,
     },
     
   });
 
-export default contact
+export default Contact

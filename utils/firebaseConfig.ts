@@ -1,10 +1,5 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { FirebaseApp, initializeApp } from 'firebase/app';
-import {
-  // @ts-ignore
-  getReactNativePersistence,
-  initializeAuth
-} from 'firebase/auth';
+import { getAuth } from 'firebase/auth';
 import { getMessaging, getToken, isSupported } from 'firebase/messaging';
 import { Platform } from 'react-native';
 
@@ -20,10 +15,8 @@ const firebaseConfig = {
 // Initialize Firebase app
 const app = initializeApp(firebaseConfig);
 
-// Initialize Auth with AsyncStorage persistence
-const auth = initializeAuth(app, {
-  persistence: getReactNativePersistence(AsyncStorage)
-});
+// Initialize Auth with persistence
+const auth = getAuth(app);
 
 class FirebaseService {
   private static instance: FirebaseService;
