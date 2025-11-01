@@ -17,6 +17,26 @@ export class PushNotificationService {
     this.firebaseService = FirebaseService.getInstance();
   }
 
+  private async registerTokenWithBackend(token: string): Promise<void> {
+    try {
+      const response = await fetch('https://admin-pearl-kappa-34.vercel.app/api/notification', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ token }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to persist notification token: ${response.status}`);
+      }
+
+      console.log('Notification token registered with backend.');
+    } catch (error) {
+      console.error('Error storing notification token with backend:', error);
+    }
+  }
+
   public async initialize(): Promise<void> {
     if (Platform.OS !== 'web') {
       await this.firebaseService.initialize();
@@ -89,6 +109,8 @@ export class PushNotificationService {
       if (this.firebaseService.isInitialized()) {
         await this.firebaseService.getMessagingToken();
       }
+
+      await this.registerTokenWithBackend(expoToken);
 
       return expoToken;
     } catch (error) {

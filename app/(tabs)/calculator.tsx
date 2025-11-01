@@ -23,9 +23,10 @@ import { GoldPriceContext } from './_layout';
 const { width } = Dimensions.get('window');
 
 export default function Calculator() {
-  const { goldPrice: goldPriceFromContext } = useContext(GoldPriceContext);
+  const { goldPrice: goldPriceFromContext, isMaintenanceMode } = useContext(GoldPriceContext);
   const [quality, setQuality] = useState<string>('');
   const [weight, setWeight] = useState<string>('');
+  const [otherCharges, setOtherCharges] = useState<string>('');
   const [making, setMaking] = useState<string>('');
   const [customMaking, setCustomMaking] = useState<string>('');
   const [isCustomMaking, setIsCustomMaking] = useState<boolean>(false);
@@ -33,6 +34,7 @@ export default function Calculator() {
   const [price, setPrice] = useState<number | null>(null);
   const [calculatedmaking, setcalculatedMaking] = useState<number | null>(null);
   const [calculatedweight, setcalculatedWeigt] = useState<number | null>(null);
+  const [calculatedOtherCharges, setCalculatedOtherCharges] = useState<number | null>(null);
   const [gst, setGst] = useState<number | null>(null);
   const [goldQualities, setGoldQualities] = useState<{ karat: string; ratio: number; description: string }[]>([]);
   const [qualitiesLoading, setQualitiesLoading] = useState<boolean>(false);
@@ -91,6 +93,13 @@ export default function Calculator() {
       return;
     }
 
+    const parsedOtherCharges = otherCharges.trim() ? parseFloat(otherCharges) : 0;
+
+    if (isNaN(parsedOtherCharges) || parsedOtherCharges < 0) {
+      Alert.alert('Invalid Input', 'Please enter a valid amount for other charges');
+      return;
+    }
+
     const selectedQuality = goldQualities.find(q => q.karat === quality);
     let makingRatio = 0;
 
@@ -103,13 +112,15 @@ export default function Calculator() {
 
     if (selectedQuality) {
       const basePrice = parseFloat(weight) * goldPriceFromContext * selectedQuality.ratio;
-      const makingCharges = parseFloat(weight) * goldPriceFromContext * makingRatio;
-      const gst_charge = ((basePrice + makingCharges) * 0.003);
-      const totalPrice = ((basePrice + makingCharges) * 1.03) + 45; // 3% GST
-      
+      const makingChargesValue = parseFloat(weight) * goldPriceFromContext * makingRatio;
+      const subtotalBeforeGst = basePrice + makingChargesValue + parsedOtherCharges;
+      const gst_charge = (subtotalBeforeGst * 0.003);
+      const totalPrice = (subtotalBeforeGst * 1.03) + 45; // 3% GST
+
       setPrice(totalPrice);
-      setcalculatedMaking(makingCharges);
+      setcalculatedMaking(makingChargesValue);
       setcalculatedWeigt(basePrice);
+      setCalculatedOtherCharges(parsedOtherCharges);
       setGst(gst_charge);
     }
     
@@ -119,6 +130,8 @@ export default function Calculator() {
   const generatePDFContent = () => {
     const currentDate = new Date().toLocaleDateString('en-IN');
     const currentTime = new Date().toLocaleTimeString('en-IN');
+    const showOtherCharges = (calculatedOtherCharges ?? 0) > 0;
+    const formattedOtherCharges = calculatedOtherCharges?.toLocaleString('en-IN', { maximumFractionDigits: 0 }) ?? '0';
     
     return `
     <!DOCTYPE html>
@@ -254,6 +267,11 @@ export default function Calculator() {
               <span class="detail-label">Making Charges:</span>
               <span class="detail-value">${isCustomMaking ? customMaking + '%' : making}</span>
             </div>
+            ${showOtherCharges ? `
+            <div class="detail-row">
+              <span class="detail-label">Other Charges:</span>
+              <span class="detail-value">₹${formattedOtherCharges}</span>
+            </div>` : ''}
           </div>
 
           <div class="section">
@@ -266,6 +284,11 @@ export default function Calculator() {
               <span class="detail-label">Making Charges:</span>
               <span class="detail-value">₹${calculatedmaking?.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
             </div>
+            ${showOtherCharges ? `
+            <div class="detail-row">
+              <span class="detail-label">Other Charges:</span>
+              <span class="detail-value">₹${formattedOtherCharges}</span>
+            </div>` : ''}
             <div class="detail-row">
               <span class="detail-label">Hallmarking:</span>
               <span class="detail-value">₹45</span>
@@ -353,6 +376,7 @@ Customer: ${customerName || 'N/A'}
 Quality: ${quality}
 Weight: ${weight}g
 Making: ${isCustomMaking ? customMaking + '%' : making}
+Other Charges: ₹${calculatedOtherCharges?.toLocaleString('en-IN', { maximumFractionDigits: 0 }) ?? '0'}
 Total: ₹${price?.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
         
         await Share.share({
@@ -369,6 +393,7 @@ Total: ₹${price?.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
   const resetCalculator = () => {
     setQuality('');
     setWeight('');
+    setOtherCharges('');
     setMaking('');
     setCustomMaking('');
     setIsCustomMaking(false);
@@ -376,6 +401,7 @@ Total: ₹${price?.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
     setPrice(null);
     setcalculatedMaking(null);
     setcalculatedWeigt(null);
+    setCalculatedOtherCharges(null);
     setGst(null);
   };
 
@@ -436,21 +462,33 @@ Total: ₹${price?.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
       <StatusBar barStyle="light-content" backgroundColor="#1a1a2e" />
       
       <View style={styles.header}>
-        {/* <View style={styles.headerContent}>
-          <MaterialCommunityIcons name="gold" size={32} color={Colors.fontColors} />
-          <Text style={styles.headerTitle}>Gold Calculator</Text>
-        </View> */}
         <Text style={styles.currentPrice}>
-          Current Rate: ₹{goldPriceFromContext.toLocaleString('en-IN', {
-            maximumFractionDigits: 2
-          })} / 10g
+          {isMaintenanceMode ? (
+            "Under Maintenance"
+          ) : (
+            `Current Rate: ₹${goldPriceFromContext.toLocaleString('en-IN', {
+              maximumFractionDigits: 2
+            })} / 10g`
+          )}
         </Text>
       </View>
 
-      <ScrollView 
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
+      {isMaintenanceMode ? (
+        <View style={styles.maintenanceWrapper}>
+          <View style={styles.maintenanceContainer}>
+            <MaterialCommunityIcons name="tools" size={80} color={Colors.fontColors} />
+            <Text style={styles.maintenanceTitle}>Under Maintenance</Text>
+            <Text style={styles.maintenanceText}>
+              The calculator is temporarily unavailable.{'\n'}
+              Please check back later.
+            </Text>
+          </View>
+        </View>
+      ) : (
+        <ScrollView 
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+        >
         <View style={styles.calculatorCard}>
           {/* Customer Name Input */}
           <Text style={styles.sectionTitle}>👤 Customer Information (Optional)</Text>
@@ -545,6 +583,22 @@ Total: ₹${price?.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
             <Text style={styles.unitText}>grams</Text>
           </View>
 
+          {/* Other Charges Input */}
+          <Text style={styles.sectionTitle}>➕ Other Charges (Optional)</Text>
+          <View style={styles.inputContainer}>
+            <MaterialCommunityIcons name="cash-plus" size={20} color={Colors.fontColors} />
+            <TextInput
+              style={styles.input}
+              value={otherCharges}
+              onChangeText={setOtherCharges}
+              keyboardType="decimal-pad"
+              placeholder="Enter additional charges"
+              placeholderTextColor="#666"
+              selectionColor="#FFD700"
+            />
+            <Text style={styles.unitText}>₹</Text>
+          </View>
+
           {/* Action Buttons */}
           <View style={styles.buttonContainer}>
             <TouchableOpacity
@@ -598,6 +652,13 @@ Total: ₹${price?.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
               </View>
 
               <View style={styles.row}>
+                <Text style={styles.label}>OTHER CHARGES:</Text>
+                <Text style={styles.value}>
+                  ₹{(calculatedOtherCharges ?? 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                </Text>
+              </View>
+
+              <View style={styles.row}>
                 <Text style={styles.label}>HALLMARKING:</Text>
                 <Text style={styles.value}>₹45</Text>
               </View>
@@ -640,6 +701,7 @@ Total: ₹${price?.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
           </View>
         )}
       </ScrollView>
+      )}
     </SafeAreaView>
   );
 }
@@ -945,5 +1007,34 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#fff',
     marginLeft: 8,
+  },
+  maintenanceWrapper: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  maintenanceContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 20,
+    padding: 40,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 215, 0, 0.2)',
+  },
+  maintenanceTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: Colors.fontColors,
+    marginTop: 20,
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  maintenanceText: {
+    fontSize: 16,
+    color: '#9e9e9e',
+    textAlign: 'center',
+    lineHeight: 24,
   },
 });

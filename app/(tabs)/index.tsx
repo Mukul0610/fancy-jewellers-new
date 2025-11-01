@@ -432,7 +432,7 @@ import { PushNotificationService } from '@/utils/notifications';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import {
   Animated,
   Dimensions,
@@ -457,7 +457,7 @@ export default function Dashboard() {
   const [qualities, setQualities] = useState<{ karatage: string; ratio: number }[]>([]);
   const [qualitiesLoading, setQualitiesLoading] = useState<boolean>(false);
   const [qualitiesError, setQualitiesError] = useState<string | null>(null);
-  const { goldPrice: goldPriceFromContext, loading: contextLoading } = useContext(GoldPriceContext);
+  const { goldPrice: goldPriceFromContext, loading: contextLoading, isMaintenanceMode } = useContext(GoldPriceContext);
   const [goldPrice, setGoldPrice] = useState<number>(goldPriceFromContext);
   const [displayGold, setDisplayGold] = useState<boolean>(false);
   const [refreshing, setRefreshing] = useState<boolean>(false);
@@ -469,19 +469,31 @@ export default function Dashboard() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [prevAsks, setPrevAsks] = useState<{[key: string]: number}>({});
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const flatListRef = useRef<FlatList>(null);
+  const disclaimerAnim = useRef(new Animated.Value(0)).current;
 
-  // Notifications disabled for Expo Go compatibility
-  async function setupNotifications() {
+  // Notification setup to capture and register device tokens
+  const setupNotifications = useCallback(async () => {
     try {
       const notificationService = new PushNotificationService();
       await notificationService.initialize();
       const token = await notificationService.getPushToken();
-      
-      console.log(token)
+
+      if (token) {
+        console.log('Expo push token registered:', token);
+      } else {
+        console.log('Push token unavailable.');
+      }
     } catch (error) {
-      console.error("Error setting up notifications:", error);
+      console.error('Error setting up notifications:', error);
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    if (Platform.OS !== 'web') {
+      setupNotifications();
+    }
+  }, [setupNotifications]);
 
   const animatePrice = (isIncrease: boolean) => {
     fadeAnim.setValue(1);
@@ -608,6 +620,41 @@ export default function Dashboard() {
     fetchQualities();
   }, []);
 
+  // Auto-slide banner every 5 seconds
+  useEffect(() => {
+    if (heroImages.length <= 1) return;
+
+    const autoSlideInterval = setInterval(() => {
+      setCurrentImageIndex((prevIndex) => {
+        const nextIndex = (prevIndex + 1) % heroImages.length;
+        flatListRef.current?.scrollToIndex({
+          index: nextIndex,
+          animated: true,
+        });
+        return nextIndex;
+      });
+    }, 5000);
+
+    return () => clearInterval(autoSlideInterval);
+  }, [heroImages.length]);
+
+  // Animate disclaimer text (slide from left to right every 30 seconds)
+  useEffect(() => {
+    const startAnimation = () => {
+      disclaimerAnim.setValue(0);
+      Animated.timing(disclaimerAnim, {
+        toValue: 1,
+        duration: 30000,
+        useNativeDriver: true,
+      }).start(() => {
+        // Restart animation after completion
+        setTimeout(startAnimation, 0);
+      });
+    };
+
+    startAnimation();
+  }, [disclaimerAnim]);
+
   const PriceCard = ({ karatage, ratio, index }: { karatage: string; ratio: number; index: number }) => {
     const animValue = cardAnims[index] || new Animated.Value(0);
     
@@ -670,6 +717,7 @@ export default function Dashboard() {
   const HeroSection = () => (
     <View style={styles.heroContainer}>
       <FlatList
+        ref={flatListRef}
         data={heroImages}
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -677,6 +725,13 @@ export default function Dashboard() {
         onMomentumScrollEnd={(event) => {
           const newIndex = Math.round(event.nativeEvent.contentOffset.x / width);
           setCurrentImageIndex(newIndex);
+        }}
+        onScrollToIndexFailed={(info) => {
+          // Handle scroll failure gracefully
+          const wait = new Promise(resolve => setTimeout(resolve, 500));
+          wait.then(() => {
+            flatListRef.current?.scrollToIndex({ index: info.index, animated: true });
+          });
         }}
         renderItem={({ item }) => (
           <View style={styles.heroSlide}>
@@ -764,40 +819,29 @@ export default function Dashboard() {
                     <Text style={styles.priceLabel}>24K Gold / 10g</Text>
                   </View>
                   
-                  <Text style={styles.currentPrice}>
-                    {goldPrice === 0 ? "..." : `₹${goldPrice.toLocaleString('en-IN', {
-                      maximumFractionDigits: 2,
-                      minimumFractionDigits: 2
-                    })}`}
-                  </Text>
-{/*                   
-                  <View style={[styles.priceChangeContainer, {
-                    backgroundColor: priceChange.isPositive 
-                      ? 'rgba(34, 197, 94, 0.2)' 
-                      : 'rgba(239, 68, 68, 0.2)'
-                  }]}>
-                    <MaterialCommunityIcons
-                      name={priceChange.isPositive ? 'trending-up' : 'trending-down'}
-                      size={20}
-                      color={priceChange.isPositive ? '#22c55e' : '#ef4444'}
-                    />
-                    <Text style={[styles.priceChangeText, {
-                      color: priceChange.isPositive ? '#22c55e' : '#ef4444'
-                    }]}>
-                      {priceChange.isPositive ? '+' : ''}₹{Math.abs(priceChange.value).toLocaleString('en-IN', {
-                        maximumFractionDigits: 2,
-                        minimumFractionDigits: 2
-                      })}
-                    </Text>
-                    <Text style={styles.changeLabel}>today</Text>
-                  </View> */}
-                  
-                  <View style={styles.updateTime}>
-                    <MaterialCommunityIcons name="update" size={12} color="#888" />
-                    <Text style={styles.updateText}>
-                      Updated at {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </Text>
-                  </View>
+                  {isMaintenanceMode ? (
+                    <View style={styles.maintenanceContainer}>
+                      <MaterialCommunityIcons name="tools" size={48} color="#FFD700" />
+                      <Text style={styles.maintenanceText}>Under Maintenance</Text>
+                      <Text style={styles.maintenanceSubtext}>Pricing updates temporarily unavailable</Text>
+                    </View>
+                  ) : (
+                    <>
+                      <Text style={styles.currentPrice}>
+                        {goldPrice === 0 ? "..." : `₹${goldPrice.toLocaleString('en-IN', {
+                          maximumFractionDigits: 2,
+                          minimumFractionDigits: 2
+                        })}`} 
+                      </Text>
+                      <Text> + 3% GST</Text>
+                      <View style={styles.updateTime}>
+                        <MaterialCommunityIcons name="update" size={12} color="#888" />
+                        <Text style={styles.updateText}>
+                          Updated at {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </Text>
+                      </View>
+                    </>
+                  )}
                 </BlurView>
               </LinearGradient>
             </Animated.View>
@@ -815,15 +859,47 @@ export default function Dashboard() {
             {qualitiesError && (
               <Text style={styles.errorText}>{qualitiesError}</Text>
             )}
-            {(!qualitiesLoading && !qualitiesError && qualities.length > 0) && (
-              <View style={styles.karatContainer}>
-                {qualities.map((item, index) => (
-                  <PriceCard key={item.karatage} {...item} index={index} />
-                ))}
+            {isMaintenanceMode ? (
+              <View style={styles.maintenanceContainer}>
+                <MaterialCommunityIcons name="tools" size={48} color="#FFD700" />
+                <Text style={styles.maintenanceText}>Under Maintenance</Text>
+                <Text style={styles.maintenanceSubtext}>Pricing updates temporarily unavailable</Text>
               </View>
+            ) : (
+              (!qualitiesLoading && !qualitiesError && qualities.length > 0) && (
+                <View style={styles.karatContainer}>
+                  {qualities.map((item, index) => (
+                    <PriceCard key={item.karatage} {...item} index={index} />
+                  ))}
+                </View>
+              )
             )}
           </View>
         </ScrollView>
+
+        {/* Scrolling Disclaimer at Bottom */}
+        <View style={styles.disclaimerContainer}>
+          <Animated.View
+            style={[
+              styles.disclaimerTextWrapper,
+              {
+                transform: [
+                  {
+                    translateX: disclaimerAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [width, -width],
+                    }),
+                  },
+                ],
+              },
+            ]}
+          >
+            <MaterialCommunityIcons name="information" size={16} color="#FFD700" />
+            <Text style={styles.disclaimerText}>
+              Prices may vary. Please verify before ordering.
+            </Text>
+          </Animated.View>
+        </View>
       </LinearGradient>
     </SafeAreaView>
   );
@@ -1067,5 +1143,42 @@ const styles = StyleSheet.create({
     color: '#ef4444',
     textAlign: 'center',
     marginVertical: 20,
+  },
+  maintenanceContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+  },
+  maintenanceText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#FFD700',
+    marginTop: 16,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  maintenanceSubtext: {
+    fontSize: 14,
+    color: '#888',
+    textAlign: 'center',
+  },
+  disclaimerContainer: {
+    backgroundColor: 'rgba(255, 215, 0, 0.1)',
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 215, 0, 0.3)',
+    paddingVertical: 12,
+    overflow: 'hidden',
+  },
+  disclaimerTextWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    gap: 8,
+  },
+  disclaimerText: {
+    color: '#FFD700',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });

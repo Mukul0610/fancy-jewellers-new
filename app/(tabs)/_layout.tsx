@@ -1,13 +1,13 @@
 import axios from 'axios';
 import {
-  router,
-  Tabs
+    router,
+    Tabs
 } from 'expo-router';
 import React, {
-  createContext,
-  useCallback,
-  useEffect,
-  useState,
+    createContext,
+    useCallback,
+    useEffect,
+    useState,
 } from 'react';
 import { AppState, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -19,22 +19,44 @@ import { Image } from 'expo-image';
 type GoldPriceContextType = {
   goldPrice: number;
   loading: boolean;
+  isMaintenanceMode: boolean;
 };
 
 export const GoldPriceContext = createContext<GoldPriceContextType>({
   goldPrice: 10000,
   loading: true,
+  isMaintenanceMode: false,
 });
 
 const GoldPriceProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [goldPrice, setGoldPrice] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
+  const [isMaintenanceMode, setIsMaintenanceMode] = useState<boolean>(false);
   const [usd, setUsd] = useState<number>(84);
   const [x, setX] = useState<number>(1);
+
+  // Check maintenance mode from stopper API
+  const checkMaintenanceMode = useCallback(async () => {
+    try {
+      const response = await axios.get('https://admin-pearl-kappa-34.vercel.app/api/stopper');
+      const stopperData = response.data[0];
+      
+      if (stopperData && typeof stopperData.x === 'boolean') {
+        setIsMaintenanceMode(stopperData.x);
+        console.log('Maintenance Mode:', stopperData.x);
+      }
+    } catch (error) {
+      console.error('Error fetching maintenance mode:', error);
+      // Don't set maintenance mode on error, continue normal operation
+    }
+  }, []);
 
   // Fetch USD price and rate only once during initialization
   const initializeRates = useCallback(async () => {
     try {
+      // Check maintenance mode first
+      await checkMaintenanceMode();
+
       const [usdResponse, rateResponse] = await Promise.all([
         axios.get('https://open.er-api.com/v6/latest/USD'),
         axios.get('https://admin-pearl-kappa-34.vercel.app/api/rate')
@@ -64,7 +86,7 @@ const GoldPriceProvider: React.FC<{ children: React.ReactNode }> = ({ children }
       console.error('Error fetching initial rates:', error);
       return usd;
     }
-  }, [usd]);
+  }, [usd, checkMaintenanceMode]);
 
   const fetchGoldPrice = useCallback(async (currentUsd: number) => {
     try {
@@ -160,7 +182,7 @@ const GoldPriceProvider: React.FC<{ children: React.ReactNode }> = ({ children }
   }, [initializeRates, fetchGoldPrice, usd, refreshData]);
 
   return (
-    <GoldPriceContext.Provider value={{ goldPrice, loading }}>
+    <GoldPriceContext.Provider value={{ goldPrice, loading, isMaintenanceMode }}>
       {children}
     </GoldPriceContext.Provider>
   );
